@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Generator - เครื่องมือสร้างเอกสาร</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap');
+
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ส่วนของการกรอกข้อมูล */
+        .editor-section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--secondary-color);
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        input[type="text"], input[type="date"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Prompt', sans-serif;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-generate {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            background-color: #357abd;
+        }
+
+        .btn-print {
+            background-color: #27ae60;
+            color: white;
+            display: none; /* ซ่อนไว้ก่อนจนกว่าจะกดสร้างเอกสาร */
+        }
+
+        .btn-print:hover {
+            background-color: #219150;
+        }
+
+        /* ส่วนแสดงผลเอกสาร (Preview) */
+        .document-preview {
+            background-color: white;
+            padding: 40px 50px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: none; /* ซ่อนไว้จนกว่าจะกด Generate */
+            min-height: 500px;
+        }
+
+        .doc-title {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .doc-meta {
+            text-align: right;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .doc-content {
+            font-size: 16px;
+            line-height: 1.8;
+            white-space: pre-wrap; /* เพื่อให้ขึ้นบรรทัดใหม่ตามการพิมพ์ */
+            text-align: justify;
+        }
+
+        /* ส่วนของผู้จัดทำ */
+        .creator-section {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin-top: 10px;
+        }
+
+        .creator-title {
+            font-size: 14px;
+            color: #b3cde0;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .creator-names {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffde59;
+            line-height: 1.8;
+        }
+        
+        .creator-names span {
+            display: block;
+        }
+
+        /* การตั้งค่าสำหรับการพิมพ์ (Print Media Query) */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+            .editor-section, .creator-section, .button-group {
+                display: none !important; /* ซ่อนฟอร์มและปุ่มเมื่อสั่งพิมพ์ */
+            }
+            .document-preview {
+                display: block !important;
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                width: 100%;
+            }
+            .main-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    
+    <!-- ฟอร์มสำหรับกรอกข้อมูล -->
+    <div class="editor-section">
+        <h1>Document Generator</h1>
+        
+        <div class="form-group">
+            <label for="docTitle">หัวข้อเอกสาร (Title)</label>
+            <input type="text" id="docTitle" placeholder="ระบุหัวข้อเอกสาร...">
+        </div>
+
+        <div class="form-group">
+            <label for="docAuthor">ชื่อผู้เขียน / ผู้รับผิดชอบ (Author)</label>
+            <input type="text" id="docAuthor" placeholder="ระบุชื่อผู้เขียน...">
+        </div>
+
+        <div class="form-group">
+            <label for="docDate">วันที่ (Date)</label>
+            <input type="date" id="docDate">
+        </div>
+
+        <div class="form-group">
+            <label for="docContent">เนื้อหาเอกสาร (Content)</label>
+            <textarea id="docContent" placeholder="พิมพ์เนื้อหาเอกสารของคุณที่นี่..."></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-generate" onclick="generateDocument()">สร้างเอกสาร (Generate)</button>
+            <button class="btn-print" id="btnPrint" onclick="printDocument()">พิมพ์ / บันทึกเป็น PDF</button>
+        </div>
+    </div>
+
+    <!-- หน้าต่างแสดงผลเอกสาร -->
+    <div class="document-preview" id="documentPreview">
+        <div class="doc-title" id="outTitle">หัวข้อเอกสาร</div>
+        <div class="doc-meta">
+            เขียนโดย: <span id="outAuthor">-</span> | วันที่: <span id="outDate">-</span>
+        </div>
+        <div class="doc-content" id="outContent">เนื้อหาเอกสารจะแสดงที่นี่</div>
+    </div>
+
+    <!-- ส่วนชื่อผู้จัดทำ (เห็นชัดเจน) -->
+    <div class="creator-section">
+        <div class="creator-title">ออกแบบและพัฒนาโดย (ผู้จัดทำ)</div>
+        <div class="creator-names">
+            <span>รัฐภูมิ ทรัพย์มีชัยCE6921</span>
+            <span>ณัฐพงศ์ อนาวงศ์CE6921</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ฟังก์ชันสำหรับดึงวันที่ปัจจุบันมาใส่ในช่อง Date เป็นค่าเริ่มต้น
+    window.onload = function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('docDate').value = today;
+    };
+
+    // ฟังก์ชันสร้างเอกสาร
+    function generateDocument() {
+        // ดึงค่าจาก Input
+        const title = document.getElementById('docTitle').value || 'เอกสารไม่มีหัวข้อ';
+        const author = document.getElementById('docAuthor').value || 'ไม่ระบุผู้เขียน';
+        let dateVal = document.getElementById('docDate').value;
+        const content = document.getElementById('docContent').value || 'ไม่มีเนื้อหาในเอกสาร';
+
+        // แปลงรูปแบบวันที่ให้อ่านง่ายขึ้น (ตัวเลือกเสริม)
+        if(dateVal) {
+            const dateObj = new Date(dateVal);
+            dateVal = dateObj.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        } else {
+            dateVal = 'ไม่ระบุวันที่';
+        }
+
+        // นำค่าไปแสดงในส่วน Preview
+        document.getElementById('outTitle').innerText = title;
+        document.getElementById('outAuthor').innerText = author;
+        document.getElementById('outDate').innerText = dateVal;
+        document.getElementById('outContent').innerText = content;
+
+        // แสดงหน้าต่าง Preview และปุ่ม Print
+        document.getElementById('documentPreview').style.display = 'block';
+        document.getElementById('btnPrint').style.display = 'block';
+        
+        // เลื่อนหน้าจอลงมาให้เห็นเอกสาร
+        document.getElementById('documentPreview').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ฟังก์ชันสั่งพิมพ์
+    function printDocument() {
+        window.print();
+    }
+</script>
+
+</body>
+</html>
